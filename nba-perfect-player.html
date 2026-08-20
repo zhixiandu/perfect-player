@@ -4207,7 +4207,7 @@ function renderCareerTeamReveal(team, cnName, role, rosterHtml) {
 
 // ==================== 5. 生涯球队分配 ====================
 function renderCareerSpin() {
-  var pool = STATE._teamsVisited.length > 0 ? STATE._teamsVisited : [...NBA2K_TEAMS].sort();
+  var pool = [...NBA2K_TEAMS].sort();
   const sorted = pool.slice().sort();
   const copies = 5;
   const allItems = [];
@@ -4264,7 +4264,7 @@ function spinCareerSlot() {
   const reel = document.getElementById('career-slot-reel');
   if (!reel) return;
   
-  var pool = STATE._teamsVisited.length > 0 ? STATE._teamsVisited : [...NBA2K_TEAMS].sort();
+  var pool = [...NBA2K_TEAMS].sort();
   var sorted = pool.slice().sort();
   var teamCount = sorted.length;
   const itemH = 38;
@@ -4380,38 +4380,17 @@ function selectCareerTeam(team) {
   }
 }
 
-// ==================== 5.5 自选球队弹窗 ====================
 function showCareerTeamPicker(teamList) {
-  var isFull = Array.isArray(teamList);
-  
-  // 计算可选球队数量：3(x+1)，x = 建球员阶段全局剩余的换人次数
-  var x = STATE._rerollsLeft || 0;
-  var pickCount = Math.min(30, 3 * (x + 1));
-  
-  if (!isFull && pickCount === 0) {
-    return;
-  }
-  
+  // 直接开放全部30支球队
+  var isFull = true;
+
   // 如果已有弹窗则移除
   var old = document.getElementById('team-picker-overlay');
   if (old) old.remove();
-  
-  var allTeams;
-  var subLine;
-  if (isFull) {
-    // 看视频奖励：全 30 队任选
-    allTeams = teamList.slice();
-    subLine = '🎉 看视频获得 · 全 ' + allTeams.length + ' 队任选';
-  } else {
-    // 从已访问球队中随机选 pickCount 支
-    allTeams = STATE._teamsVisited.length > 0 ? STATE._teamsVisited.slice() : [...NBA2K_TEAMS];
-    for (var i = allTeams.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = allTeams[i]; allTeams[i] = allTeams[j]; allTeams[j] = tmp;
-    }
-    allTeams = allTeams.slice(0, pickCount);
-    subLine = '剩余换人' + x + '次 · 可选' + pickCount + '队';
-  }
+
+  // 显示全部球队，不再根据剩余换人次数限制
+  var allTeams = [...NBA2K_TEAMS].sort();
+  var subLine = '全部30支球队任选';
   var picked = allTeams;
   
   var gridHtml = '';
@@ -4433,7 +4412,6 @@ function showCareerTeamPicker(teamList) {
     '<div class="team-picker-modal">' +
       '<div class="team-picker-header">' +
         '<span>' + (isFull ? '🎉 自选喜欢的球队' : '🎯 选择生涯球队') + '</span>' +
-        '<button id="adTeamPickBtn" onclick="watchAdToPickTeam()" style="min-height:30px;padding:5px 10px;border:none;border-radius:8px;background:linear-gradient(135deg,#ff6b35,#ff8a5c);color:#fff;font-family:var(--font-display);font-size:11px;font-weight:600;cursor:pointer;box-shadow:0 2px 0 #c94d1e;">📺 看视频自选球队</button>' +
         '<button class="team-picker-close" onclick="closeCareerTeamPicker()">✕</button>' +
       '</div>' +
       '<div class="team-picker-header" style="border-bottom:none;padding:4px 14px 8px;justify-content:center;">' +
