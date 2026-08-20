@@ -422,7 +422,7 @@
       const currentRoster = (pool[id].players || []).slice(0, 12);
       const historicalRoster = (pool[id].historicalPlayers || []).slice(0, 5);
       const roster = currentRoster.slice();
-      if (historicalRoster.length && Math.random() < 0.20) roster.push(pick(historicalRoster));
+      if (historicalRoster.length && Math.random() < 1.00) roster.push(pick(historicalRoster));
       const fresh = roster.filter(p => !PP.build.usedPlayers.has(sourcePlayerKey(p)));
       const matching = (fresh.length ? fresh : roster).filter(p => parseNum(p.source && p.source.year, 0) === requested.year);
       const candidates = matching.length ? matching : (fresh.length ? fresh : roster);
