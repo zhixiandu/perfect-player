@@ -2963,27 +2963,11 @@ function renderTeamPicker() {
   if (rosterArea) rosterArea.innerHTML = '';
 }
 
-/** 只更新按钮状态，不重建老虎机HTML（防止跳动）*/
-/** 更换球员按钮（三态：有次数 / 广告加载中 / 看广告获得次数） */
 function getRerollButtonHtml() {
   var hasTeam = !!STATE.currentTeam;
-  if (STATE._rerollsLeft > 0) {
-    // 计数器有次数 → 展示正常文案（未选队时禁用）
-    return '<button class="btn btn-sm slot-btn" onclick="rerollTeamPlayers()"' +
-      (hasTeam ? '' : ' disabled style="opacity:0.3;"') +
-      '>👥 更换球员 (' + STATE._rerollsLeft + ')</button>';
-  }
-  var loading = !!window._adRerollLoading;
-  var canClick = hasTeam && !loading;
-  var adLeft = Math.max(0, Number(STATE._mockAdRerollsLeft == null ? 3 : STATE._mockAdRerollsLeft));
-  if (adLeft <= 0) {
-    return '<button class="btn btn-sm slot-btn" disabled style="opacity:0.3;background:#222;color:var(--text-dim);">📺 广告重选已用完</button>';
-  }
-  return '<button class="btn btn-sm slot-btn" onclick="if(typeof watchAdToReroll===\'function\')watchAdToReroll()"' +
-    (canClick ? '' : ' disabled') +
-    ' style="' + (canClick ? 'background:linear-gradient(135deg,#3a2a1a,#2a2015);color:#f5d060;border-color:#d4af37;' : 'opacity:0.3;') + '">' +
-    (loading ? '📺 模拟广告播放中...' : '📺 看广告换球员（剩' + adLeft + '次）') +
-    '</button>';
+  return '<button class="btn btn-sm slot-btn" onclick="rerollTeamPlayers()"' +
+    (hasTeam ? '' : ' disabled style="opacity:0.3;"') +
+    '>👥 更换球员</button>';
 }
 
 function updateSlotButtons() {
@@ -3137,21 +3121,18 @@ function getBuildHistoricalSurprisePool(team) {
   return (window.PERFECT_PLAYER_HISTORICAL_SURPRISE_DATA && window.PERFECT_PLAYER_HISTORICAL_SURPRISE_DATA[team]) || [];
 }
 
-// 历史球员是低概率惊喜卡，不再像普通候选一样每轮固定出现。
-const HISTORICAL_SURPRISE_DRAW_CHANCE = 0.20;
-
-/** 从12名现役池抽一轮固定5张卡；最多插入1张巅峰惊喜卡。巅峰版与现役版视为不同卡。 */
+/** 每轮固定抽取5张卡：3名现役＋2名历史传奇 */
 function drawBuildPlayers(pool, count, team) {
   const source = Array.isArray(pool) ? pool.filter(Boolean) : [];
-  const targetCount = Math.min(count || 5, source.length);
-  const shuffled = shuffleArr(source.slice());
-  const historical = shuffleArr(getBuildHistoricalSurprisePool(team).filter(Boolean));
-  if (historical.length && targetCount >= 1 && Math.random() < HISTORICAL_SURPRISE_DRAW_CHANCE) {
-    const currentCards = shuffled.slice(0, Math.max(0, targetCount - 1));
-    const historicalCard = historical[0];
-    return shuffleArr(currentCards.concat(historicalCard));
-  }
-  return shuffled.slice(0, targetCount);
+  const shuffledCurrent = shuffleArr(source.slice());
+  const historical = shuffleArr(
+    getBuildHistoricalSurprisePool(team).filter(Boolean)
+  );
+
+  const currentCards = shuffledCurrent.slice(0, 3);
+  const historicalCards = historical.slice(0, 2);
+
+  return shuffleArr(currentCards.concat(historicalCards));
 }
 
 /** Show team roster — 5 random players (below the slot machine) */
@@ -3232,7 +3213,7 @@ function renderRosterPlayers(team, shown, allPool) {
 
 /** 当前球队内换一批球员 */
 function rerollTeamPlayers() {
-  if (STATE._rerollsLeft <= 0 || !STATE.currentTeam) return;
+  if (!STATE.currentTeam) return;
   
   const players = getBuildPlayerPool(STATE.currentTeam);
   if (!players.length) {
