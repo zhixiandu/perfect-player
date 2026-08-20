@@ -419,10 +419,14 @@
       let id = pick(eligibleIds);
       let guard = 0;
       while (id === PP.build.team && eligibleIds.length > 1 && guard++ < 8) id = pick(eligibleIds);
-      const currentRoster = (pool[id].players || []).slice(0, 12);
+      // 每轮随机展示3名现役球员
+      const currentRoster = shuffle(pool[id].players || []).slice(0, 3);
+      // 该球队的历史传奇球员池
       const historicalRoster = (pool[id].historicalPlayers || []).slice(0, 5);
+      // 固定3名现役球员
       const roster = currentRoster.slice();
-      if (historicalRoster.length && Math.random() < 1.00) roster.push(pick(historicalRoster));
+      // 必定加入1名随机历史传奇球员，总计5人
+      if (historicalRoster.length) roster.push(pick(historicalRoster));
       const fresh = roster.filter(p => !PP.build.usedPlayers.has(sourcePlayerKey(p)));
       const matching = (fresh.length ? fresh : roster).filter(p => parseNum(p.source && p.source.year, 0) === requested.year);
       const candidates = matching.length ? matching : (fresh.length ? fresh : roster);
@@ -454,15 +458,19 @@
   }
 
   function swapPlayer() {
-    const roster = PP.build.roster;
-    if (!roster.length || PP.build.swapsLeft <= 0) return null;
-    const used = PP.build.usedPlayers;
-    const cands = roster.filter(p => !used.has(sourcePlayerKey(p)) && p !== PP.build.selectedPlayer);
-    if (!cands.length) return null;
-    const p = pick(cands);
-    PP.build.swapsLeft--;
-    setSelectedSourcePlayer(p);
-    return p;
+  const roster = PP.build.roster;
+  if (!roster.length) return null;
+
+  const used = PP.build.usedPlayers;
+  const cands = roster.filter(
+    p => !used.has(sourcePlayerKey(p)) && p !== PP.build.selectedPlayer
+  );
+
+  if (!cands.length) return null;
+
+  const p = pick(cands);
+  setSelectedSourcePlayer(p);
+  return p;
   }
 
   function getPosPenalty(userPos, srcPos, attrKey) {
@@ -1326,7 +1334,7 @@
         <div class="slot-source-note">球员来源：${esc(selectedSource)}${roll.playerYear && roll.playerYear !== roll.requestedYear ? ` · 抽中记录年份 ${roll.playerLabel}` : ''}</div>
         <div class="slot-controls">
           <button class="btn btn-secondary btn-small" id="btn-reroll-team">🎲 重抽年份+球队</button>
-          <button class="btn btn-secondary btn-small" id="btn-swap-player" ${b.swapsLeft <= 0 ? 'disabled' : ''}>🔄 换球员（剩${b.swapsLeft}）</button>
+          <button class="btn btn-secondary btn-small" id="btn-swap-player">🔄 换球员</button>
         </div>
         ${b.selectedPlayer ? `<div class="slot-hint">已选择 ${esc(b.selectedPlayer.nameCn || b.selectedPlayer.name)}，点击下方属性锁定：</div>` : `<div class="slot-hint">点击下方球员卡片选择来源，再点属性锁定。</div>`}
       </div>`;
