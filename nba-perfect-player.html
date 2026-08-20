@@ -2975,7 +2975,7 @@ function updateSlotButtons() {
   if (!slotArea) return;
   
   const hasTeam = !!STATE.currentTeam;
-  const canSpin = !STATE._mustLockAfterSpin && !_slotSpinning;
+  const canSpin = !_slotSpinning;
   
   // Rebuild only the actions area, keep reel intact
   const actionsEl = slotArea.querySelector('.br-slot-actions');
@@ -2997,7 +2997,7 @@ function updateSlotButtons() {
 
 function buildSlotHTML(itemsHtml) {
   const hasTeam = !!STATE.currentTeam;
-  const canSpin = !STATE._mustLockAfterSpin && !_slotSpinning;
+  const canSpin = !_slotSpinning;
   return `
     <div class="br-slot-area">
       <div class="br-slot-label">🎰 随机选队</div>
@@ -3025,7 +3025,7 @@ let _slotSpinning = false;
 
 function pullHandle() {
   trackEvent({act:"click",blk:"BMC098",pos:"TC3",label:"随机球队-建球员"});
-  if (_slotSpinning || STATE._mustLockAfterSpin) return;
+  if (_slotSpinning) return;
   
   // Visual: flash the reel to show it's spinning
   const reel = document.getElementById('slot-reel');
@@ -3103,7 +3103,7 @@ function spinSlotMachine() {
     }
     STATE.selectedPlayer = null;
     STATE._shownThisTeam = [];
-    STATE._mustLockAfterSpin = true;
+    STATE._mustLockAfterSpin = false;
     _slotSpinning = false;
     
     renderLeftAttrs();
@@ -3169,7 +3169,7 @@ function renderRosterPlayers(team, shown, allPool) {
     : '';
   let listHtml = `<div style="display:flex;align-items:center;gap:6px;padding-bottom:4px;flex-wrap:wrap;">
     <span style="font-size:13px;font-weight:700;font-family:var(--font-display);letter-spacing:1px;">${getTeamName(team)}</span>
-    <span style="font-size:11px;color:var(--text-dim);">本轮抽取 ${shown.length} 人 · 同轮不重复 · 名人堂惊喜低概率出现</span>
+    <span style="font-size:11px;color:var(--text-dim);">本轮抽取 ${shown.length} 人 · 3名现役＋2名历史传奇 · 同轮不重复</span>
   </div>${arrivalHtml}<div class="br-roster-list" style="max-height:none;">`;
   
   shown.forEach((p, drawIndex) => {
@@ -3220,7 +3220,6 @@ function rerollTeamPlayers() {
     return;
   }
   
-  STATE._rerollsLeft--;
   const shown = drawBuildPlayers(players, 5, STATE.currentTeam);
   STATE._drawPlayers = shown;
   
